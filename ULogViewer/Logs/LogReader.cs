@@ -1197,9 +1197,27 @@ namespace CarinaStudio.ULogViewer.Logs
 									}
 								}
 							}
-							else if (printTraceLogs)
-								this.Logger.LogTrace("'{logLine}' Cannot be matched by pattern {index}/{t}: '{logPattern}'", logLine, logPatternIndex, lastLogPatternIndex, logPattern.Regex);
-							logLine = ReadNextLine(reader, ref lineNumber);
+							else
+							{
+#if DEBUG
+								this.Logger.LogTrace("'{logLine}' Cannot be matched by pattern '{logPattern}'", logLine, logPattern.Regex);
+#endif
+								// set file name and line number
+								if (isReadingFromFile)
+								{
+									logBuilder.Set(nameof(Log.LineNumber), lineNumber.ToString());
+									logBuilder.Set(nameof(Log.FileName), fileName);
+									logBuilder.Set(nameof(Log.Message), logLine);
+								}
+								// create log
+								if (logBuilder.IsNotEmpty())
+								{
+									readLog = logBuilder.BuildAndReset();
+									readLogs.Add(readLog);
+								}
+								
+							}
+							ReadNextLine();
 						}
 						finally
 						{
